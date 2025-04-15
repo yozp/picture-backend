@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yzj.picturebackend.demos.web;
+package com.yzj.picturebackend.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yzj.picturebackend.demos.web;
+package com.yzj.picturebackend.controller;
 
 /**
  * @author <a href="mailto:chenxilzx1@gmail.com">theonefx</a>
