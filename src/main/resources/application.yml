@@ -11,6 +11,10 @@ spring:
     url: jdbc:mysql://localhost:3306/yu_picture
     username: root
     password: hsp
+  # 开放更大的文件上传体积
+  servlet:
+    multipart:
+      max-file-size: 10MB
 
 mybatis-plus:
   configuration:
@@ -23,7 +27,6 @@ mybatis-plus:
       logic-delete-value: 1 # 逻辑已删除值（默认为 1）
       logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
 
-
 # 接口文档配置
 knife4j:
   enable: true
@@ -35,6 +38,15 @@ knife4j:
         api-rule: package
         api-rule-resources:
           - com.yzj.picturebackend.controller
+
+# 对象存储配置（需要从腾讯云获取）
+cos:
+  client:
+    host: https://picture-1354836443.cos.ap-guangzhou.myqcloud.com
+    secretId: AKIDv32sY3MTN4XorsiMo35uXw99xYw98vVs
+    secretKey: m4eCZlkWqysbAXhfQxHOHwQimbCcqqcE
+    region: ap-guangzhou
+    bucket: picture-1354836443
 
 
 

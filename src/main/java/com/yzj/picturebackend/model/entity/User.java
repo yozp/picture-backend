@@ -1,9 +1,6 @@
 package com.yzj.picturebackend.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -16,6 +13,10 @@ import java.util.Date;
 @TableName(value ="user")
 @Data
 public class User implements Serializable {
+
+    @TableField(exist = false)
+    private static final long serialVersionUID = 5690999298259042151L;
+
     /**
      * id（要指定主键策略）
      * id 默认是连续生成的，容易被爬虫抓取，所以更换策略为 ASSIGN_ID 雪花算法生成
