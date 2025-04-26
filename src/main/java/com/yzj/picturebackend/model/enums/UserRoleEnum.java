@@ -3,6 +3,9 @@ package com.yzj.picturebackend.model.enums;
 import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;
 
+/**
+ * 用户角色枚举类
+ */
 @Getter
 public enum UserRoleEnum {
 

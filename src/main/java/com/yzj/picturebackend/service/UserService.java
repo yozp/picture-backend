@@ -86,7 +86,7 @@ public interface UserService extends IService<User> {
 
     /**
      * 是否为管理员
-     *
+     * 作用于管理员和普通用户都能使用的业务（如上传图片）
      * @param user
      * @return
      */
