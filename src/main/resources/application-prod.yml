@@ -1,0 +1,42 @@
+# 线上配置文件
+
+server:
+  port: 8123
+spring:
+  # 数据库配置
+  # todo 需替换配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://120.27.202.191:3306/yu_picture
+    username: dmsTest
+    password: Ecs@123456
+  # Redis 配置
+  # todo 需替换配置
+  redis:
+    database: 0
+    host: 120.27.202.191
+    port: 6379
+    timeout: 5000
+    password: 123456
+mybatis-plus:
+  configuration:
+    # 为了性能，生产环境关闭日志
+    log-impl: ''
+# 接口文档配置
+#为了安全，要给 Knife4j 接口文档设置用户名和密码
+knife4j:
+  basic:
+    enable: true
+    username: root
+    password: 123456
+# 对象存储配置（需要从腾讯云获取）
+#cos:
+#  client:
+#    host: xxx
+#    secretId: xxx
+#    secretKey: xxx
+#    region: xxx
+#    bucket: xxx
+# 阿里云 AI 配置
+#aliYunAi:
+#  apiKey: xxx

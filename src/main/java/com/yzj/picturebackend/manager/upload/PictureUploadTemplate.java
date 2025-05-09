@@ -1,11 +1,14 @@
 package com.yzj.picturebackend.manager.upload;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.qcloud.cos.model.PutObjectResult;
+import com.qcloud.cos.model.ciModel.persistence.CIObject;
 import com.qcloud.cos.model.ciModel.persistence.ImageInfo;
+import com.qcloud.cos.model.ciModel.persistence.ProcessResults;
 import com.yzj.picturebackend.config.CosClientConfig;
 import com.yzj.picturebackend.exception.BusinessException;
 import com.yzj.picturebackend.exception.ErrorCode;
@@ -24,18 +27,19 @@ import java.util.List;
  * 采用模板方法设计模式
  */
 @Slf4j
-public abstract class PictureUploadTemplate {  
-  
+public abstract class PictureUploadTemplate {
+
     @Resource
     protected CosManager cosManager;
-  
-    @Resource  
+
+    @Resource
     protected CosClientConfig cosClientConfig;
 
     /**
      * 模板方法，定义上传流程
      * 为了让模板同时兼容 MultiPartFile 和 String 类型的文件参数，
      * 直接将这两种情况统一为 Object 类型的 inputSource 输入源
+     *
      * @param inputSource
      * @param uploadPathPrefix
      * @return
@@ -56,74 +60,109 @@ public abstract class PictureUploadTemplate {
         //拼接图片完整路径
         String uploadPath = String.format("/%s/%s", uploadPathPrefix, uploadFilename);
 //        uploadPath=processUploadPath(uploadPath);
-  
-        File file = null;  
-        try {  
+
+        File file = null;
+        try {
             // 3. 创建临时文件  
             file = File.createTempFile(uploadPath, null);
             // 处理文件来源（本地或 URL）  
-            processFile(inputSource, file);  
-  
+            processFile(inputSource, file);
+
             // 4. 上传图片到对象存储  
             PutObjectResult putObjectResult = cosManager.putPictureObject(uploadPath, file);
             //获取图片信息
             ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo();
-  
+
+            //从图片处理结果中获取到压缩图，并设置到返回结果中
+            ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();
+            List<CIObject> objectList = processResults.getObjectList();
+            if (CollUtil.isNotEmpty(objectList)) {
+                CIObject compressedCiObject = objectList.get(0);
+                CIObject thumbnailCiObject = objectList.get(1);    // 缩略图默认等于压缩图
+                // 有生成缩略图，才得到缩略图
+                if (objectList.size() > 1) {
+                    thumbnailCiObject = objectList.get(1);
+                }
+                // 封装压缩图返回结果
+                return buildResult(originFilename, compressedCiObject, thumbnailCiObject);
+            }
+
             // 5. 封装返回结果  
-            return buildResult(originFilename, file, uploadPath, imageInfo);  
-        } catch (Exception e) {  
-            log.error("图片上传到对象存储失败", e);  
+            return buildResult(originFilename, file, uploadPath, imageInfo);
+        } catch (Exception e) {
+            log.error("图片上传到对象存储失败", e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
-        } finally {  
+        } finally {
             // 6. 清理临时文件  
-            deleteTempFile(file);  
-        }  
-    }  
-  
-    /**  
-     * 校验输入源（本地文件或 URL）  
-     */  
-    protected abstract void validPicture(Object inputSource);  
-  
-    /**  
-     * 获取输入源的原始文件名  
-     */  
-    protected abstract String getOriginFilename(Object inputSource);  
-  
-    /**  
-     * 处理输入源并生成本地临时文件  
-     */  
-    protected abstract void processFile(Object inputSource, File file) throws Exception;  
-  
-    /**  
-     * 封装返回结果  
-     */  
+            deleteTempFile(file);
+        }
+    }
+
+    /**
+     * 校验输入源（本地文件或 URL）
+     */
+    protected abstract void validPicture(Object inputSource);
+
+    /**
+     * 获取输入源的原始文件名
+     */
+    protected abstract String getOriginFilename(Object inputSource);
+
+    /**
+     * 处理输入源并生成本地临时文件
+     */
+    protected abstract void processFile(Object inputSource, File file) throws Exception;
+
+    /**
+     * 封装返回结果
+     */
     private UploadPictureResult buildResult(String originFilename, File file, String uploadPath, ImageInfo imageInfo) {
-        UploadPictureResult uploadPictureResult = new UploadPictureResult();  
-        int picWidth = imageInfo.getWidth();  
+        UploadPictureResult uploadPictureResult = new UploadPictureResult();
+        int picWidth = imageInfo.getWidth();
         int picHeight = imageInfo.getHeight();
         double picScale = NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue();//图片宽高比
         uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + uploadPath);//图片地址
-        uploadPictureResult.setPicName(FileUtil.getName(originFilename));//mainName() 返回主文件名
+        uploadPictureResult.setPicName(FileUtil.mainName(originFilename));//mainName() 返回主文件名
         uploadPictureResult.setPicSize(FileUtil.size(file));//计算目录或文件的总大小
         uploadPictureResult.setPicWidth(picWidth);
         uploadPictureResult.setPicHeight(picHeight);
         uploadPictureResult.setPicScale(picScale);
         uploadPictureResult.setPicFormat(imageInfo.getFormat());//获取图片格式
-        return uploadPictureResult;  
-    }  
-  
-    /**  
-     * 删除临时文件  
-     */  
-    public void deleteTempFile(File file) {  
-        if (file == null) {  
-            return;  
-        }  
-        boolean deleteResult = file.delete();  
-        if (!deleteResult) {  
-            log.error("file delete error, filepath = {}", file.getAbsolutePath());  
-        }  
+        return uploadPictureResult;
+    }
+
+    /**
+     * 封装压缩图返回结果
+     */
+    private UploadPictureResult buildResult(String originFilename, CIObject compressedCiObject, CIObject thumbnailCiObject) {
+        UploadPictureResult uploadPictureResult = new UploadPictureResult();
+        int picWidth = compressedCiObject.getWidth();
+        int picHeight = compressedCiObject.getHeight();
+        double picScale = NumberUtil.round(picWidth * 1.0 / picHeight, 2).doubleValue();
+        uploadPictureResult.setPicName(FileUtil.mainName(originFilename));
+        uploadPictureResult.setPicWidth(picWidth);
+        uploadPictureResult.setPicHeight(picHeight);
+        uploadPictureResult.setPicScale(picScale);
+        uploadPictureResult.setPicFormat(compressedCiObject.getFormat());
+        uploadPictureResult.setPicSize(compressedCiObject.getSize().longValue());
+        // 设置压缩图的地址
+        uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + compressedCiObject.getKey());
+        // 设置缩略图的地址
+        uploadPictureResult.setThumbnailUrl(cosClientConfig.getHost() + "/" + thumbnailCiObject.getKey());
+        return uploadPictureResult;
+    }
+
+    /**
+     * 删除临时文件
+     */
+    public void deleteTempFile(File file) {
+        if (file == null) {
+            return;
+        }
+        boolean deleteResult = file.delete();
+        if (!deleteResult) {
+            log.error("file delete error, filepath = {}", file.getAbsolutePath());
+        }
     }
 
 //    /**

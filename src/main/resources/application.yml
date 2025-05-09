@@ -2,6 +2,11 @@ server:
   port: 8123
   servlet:
     context-path: /api
+    # cookie 30 天过期
+    session:
+      cookie:
+        max-age: 2592000
+
 spring:
   application:
     name: picture-backend
@@ -15,6 +20,16 @@ spring:
   servlet:
     multipart:
       max-file-size: 10MB
+  redis:
+    database: 0
+    host: 127.0.0.1
+    port: 6379
+    connect-timeout: 5000
+  # session 配置
+  session:
+    store-type: redis
+    # session 30 天过期
+    timeout: 2592000
 
 mybatis-plus:
   configuration:
@@ -40,15 +55,13 @@ knife4j:
           - com.yzj.picturebackend.controller
 
 # 对象存储配置（需要从腾讯云获取）
-cos:
-  client:
-    host: xxx
-    secretId: xxx
-    secretKey: xxx
-    region: xxx
-    bucket: xxx
-
-
+#cos:
+#  client:
+#    host: xxx
+#    secretId: xxx
+#    secretKey: xxx
+#    region: xxx
+#    bucket: xxx
 
 
 

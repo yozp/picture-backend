@@ -10,6 +10,7 @@ import com.yzj.picturebackend.model.entity.Picture;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.yzj.picturebackend.model.entity.User;
 import com.yzj.picturebackend.model.vo.PictureVO;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
@@ -95,4 +96,12 @@ public interface PictureService extends IService<Picture> {
             User loginUser
     );
 
+    /**
+     * 删除对象存储
+     * @Async 使用异步清理降低对删除操作性能的影响，并且记录一些日志，避免删除失败的情况（使得方法被异步调用）
+     *
+     * @param oldPicture
+     */
+    @Async
+    void clearPictureFile(Picture oldPicture);
 }
