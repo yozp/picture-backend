@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 图片修改请求接收类
+ * 图片编辑请求接收类
  * 一般情况下给普通用户使用，可修改的字段范围小于更新请求
  */
 @Data

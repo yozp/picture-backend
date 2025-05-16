@@ -2,10 +2,7 @@ package com.yzj.picturebackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.yzj.picturebackend.model.dto.picture.PictureQueryRequest;
-import com.yzj.picturebackend.model.dto.picture.PictureReviewRequest;
-import com.yzj.picturebackend.model.dto.picture.PictureUploadByBatchRequest;
-import com.yzj.picturebackend.model.dto.picture.PictureUploadRequest;
+import com.yzj.picturebackend.model.dto.picture.*;
 import com.yzj.picturebackend.model.entity.Picture;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.yzj.picturebackend.model.entity.User;
@@ -97,11 +94,36 @@ public interface PictureService extends IService<Picture> {
     );
 
     /**
-     * 删除对象存储
-     * @Async 使用异步清理降低对删除操作性能的影响，并且记录一些日志，避免删除失败的情况（使得方法被异步调用）
+     * 删除对象存储中的图片
      *
      * @param oldPicture
+     * @Async 使用异步清理降低对删除操作性能的影响，并且记录一些日志，避免删除失败的情况（使得方法被异步调用）
      */
     @Async
     void clearPictureFile(Picture oldPicture);
+
+    /**
+     * 删除或编辑图片前鉴权
+     * 删除图片和编辑图片的权限控制是一样的（有删除权限就有编辑权限）
+     *
+     * @param loginUser
+     * @param picture
+     */
+    void checkPictureAuth(User loginUser, Picture picture);
+
+    /**
+     * 删除图片
+     *
+     * @param pictureId
+     * @param loginUser
+     */
+    void deletePicture(long pictureId, User loginUser);
+
+    /**
+     * 编辑图片
+     *
+     * @param pictureEditRequest
+     * @param loginUser
+     */
+    void editPicture(PictureEditRequest pictureEditRequest, User loginUser);
 }
