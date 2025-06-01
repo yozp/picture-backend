@@ -29,7 +29,8 @@ knife4j:
     enable: true
     username: root
     password: 123456
-# 对象存储配置
+
+# 对象存储配置（需要从腾讯云获取）
 #cos:
 #  client:
 #    host: xxx
@@ -37,6 +38,7 @@ knife4j:
 #    secretKey: xxx
 #    region: xxx
 #    bucket: xxx
+
 # 阿里云 AI 配置
 #aliYunAi:
 #  apiKey: xxx
