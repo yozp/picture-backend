@@ -13,6 +13,9 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.yzj.picturebackend.api.aliyunai.AliYunAiApi;
+import com.yzj.picturebackend.api.aliyunai.model.CreateOutPaintingTaskRequest;
+import com.yzj.picturebackend.api.aliyunai.model.CreateOutPaintingTaskResponse;
 import com.yzj.picturebackend.common.ResultUtils;
 import com.yzj.picturebackend.exception.BusinessException;
 import com.yzj.picturebackend.exception.ErrorCode;
@@ -35,6 +38,7 @@ import com.yzj.picturebackend.service.SpaceService;
 import com.yzj.picturebackend.service.UserService;
 import com.yzj.picturebackend.utils.ColorSimilarUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.C;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -80,6 +84,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Resource
     private TransactionTemplate transactionTemplate;
+
+    @Resource
+    private AliYunAiApi aliYunAiApi;
 
     @Override
     public PictureVO uploadPicture(Object inputSource, PictureUploadRequest pictureUploadRequest, User loginUser) {
@@ -710,6 +717,29 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             log.error("名称解析错误", e);
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "名称解析错误");
         }
+    }
+
+    @Override
+    public CreateOutPaintingTaskResponse createPictureOutPaintingTask(CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User loginUser) {
+        //1、获取图片信息
+        Long pictureId = createPictureOutPaintingTaskRequest.getPictureId();
+        //Optional.ofNullable()：Java 8的Optional类，安全处理可能为null的值
+        //orElseThrow()：若值为null，抛出指定异常
+        Picture picture = Optional.ofNullable(this.getById(pictureId))
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ERROR));
+
+        //2、权限校验
+        checkPictureAuth(loginUser, picture);
+
+        //3、构造请求参数
+        CreateOutPaintingTaskRequest taskRequest = new CreateOutPaintingTaskRequest();
+        CreateOutPaintingTaskRequest.Input input = new CreateOutPaintingTaskRequest.Input();
+        input.setImageUrl(picture.getUrl());
+        taskRequest.setInput(input);
+        BeanUtil.copyProperties(createPictureOutPaintingTaskRequest, taskRequest);
+
+        //4、创建任务
+        return aliYunAiApi.createOutPaintingTask(taskRequest);
     }
 }
 
