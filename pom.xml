@@ -113,6 +113,14 @@
             <artifactId>spring-session-data-redis</artifactId>
         </dependency>
 
+        <!--主要是因为请求ai扩图报错，因为之前遇到过 hutool 请求报错所以这里用 apache httpClient-->
+        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.13</version>
+        </dependency>
+
     </dependencies>
 
     <dependencyManagement>
