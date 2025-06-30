@@ -99,10 +99,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         if (spaceId != null) {
             Space space = spaceService.getById(spaceId);
             ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
-            // 必须空间创建人（管理员）才能上传
-            if (!loginUser.getId().equals(space.getUserId())) {
-                throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间权限");
-            }
+//            // 必须空间创建人（管理员）才能上传（废弃，现已经改为使用注解鉴权）
+//            if (!loginUser.getId().equals(space.getUserId())) {
+//                throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间权限");
+//            }
             // 校验额度
             if (space.getTotalCount() >= space.getMaxCount()) {
                 throw new BusinessException(ErrorCode.OPERATION_ERROR, "空间条数不足");
@@ -121,10 +121,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         if (pictureId != null) {
             Picture oldPicture = this.getById(pictureId);
             ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
-            //仅本人或者管理员可访问
-            if (!oldPicture.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
-                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-            }
+//            //仅本人或者管理员可访问（废弃，现已经改为使用注解鉴权）
+//            if (!oldPicture.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
+//                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+//            }
             // 校验更新时传递的 spaceId 和已有图片的 spaceId 是否一致
             // 没传 spaceId，则复用原有图片的 spaceId
             if (spaceId == null) {
@@ -531,8 +531,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Picture oldPicture = this.getById(pictureId);
         ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
 
-        //2、权限校验
-        checkPictureAuth(loginUser, oldPicture);
+        //2、权限校验（废弃，现已经改为使用注解鉴权）
+        //checkPictureAuth(loginUser, oldPicture);
 
         //3、开启事务
         //删除图片时，要释放额度。同样使用 transactionTemplate 事务管理器，
@@ -580,8 +580,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Picture oldPicture = this.getById(id);
         ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
 
-        //4、 仅本人或管理员可编辑
-        checkPictureAuth(loginUser, oldPicture);
+        //4、 仅本人或管理员可编辑（废弃，现已经改为使用注解鉴权）
+        //checkPictureAuth(loginUser, oldPicture);
 
         //5、补充审核参数
         this.fillReviewParams(oldPicture, loginUser);
@@ -728,8 +728,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Picture picture = Optional.ofNullable(this.getById(pictureId))
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ERROR));
 
-        //2、权限校验
-        checkPictureAuth(loginUser, picture);
+        //2、权限校验（废弃，现已经改为使用注解鉴权）
+        //checkPictureAuth(loginUser, picture);
 
         //3、构造请求参数
         CreateOutPaintingTaskRequest taskRequest = new CreateOutPaintingTaskRequest();

@@ -10,6 +10,7 @@ import com.yzj.picturebackend.constant.UserConstant;
 import com.yzj.picturebackend.exception.BusinessException;
 import com.yzj.picturebackend.exception.ErrorCode;
 import com.yzj.picturebackend.exception.ThrowUtils;
+import com.yzj.picturebackend.manager.auth.SpaceUserAuthManager;
 import com.yzj.picturebackend.model.dto.space.SpaceAddRequest;
 import com.yzj.picturebackend.model.dto.space.SpaceEditRequest;
 import com.yzj.picturebackend.model.dto.space.SpaceQueryRequest;
@@ -43,6 +44,9 @@ public class SpaceController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private SpaceUserAuthManager spaceUserAuthManager;
 
     /**
      * 创建空间
@@ -115,6 +119,10 @@ public class SpaceController {
         Space space = spaceService.getById(id);
         ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
         SpaceVO spaceVO = spaceService.getSpaceVO(space, request);
+        // 获取权限列表
+        User loginUser = userService.getLoginUser(request);
+        List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
+        spaceVO.setPermissionList(permissionList);
         // 获取封装类
         return ResultUtils.success(spaceVO);
     }
